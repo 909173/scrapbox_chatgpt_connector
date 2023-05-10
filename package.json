@@ -1,0 +1,7 @@
+{
+  "name": "scrapbox_chatgpt_connector",
+  "dependencies": {
+    "readline": "^1.3.0",
+    "simple-git": "^3.18.0"
+  }
+}

@@ -1,5 +1,11 @@
 *.pickle
 from_scrapbox/*.json
+from_scrapbox/*.md
+from_scrapbox/*.txt
+
+git-repository/
+
+node_modules/
 
 ## Python template
 # Byte-compiled / optimized / DLL files

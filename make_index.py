@@ -85,7 +85,46 @@ def update_from_scrapbox(json_file, out_index, in_index=None):
 
     vs.save()
 
+def update_from_plainText(text_file, out_index, in_index=None):
+    """
+    out_index: Output index file name
+    text_file: Input JSON file name (from scrapbox)
+    in_index: Optional input index file name. It is not modified and is used as cache to reduce API calls.
+    out_index: 出力インデックスファイル名
+    text_file: 入力テキストファイル名 (scrapboxからの)
+    in_index: オプショナルな入力インデックスファイル名。変更されず、APIコールを減らすためのキャッシュとして使用されます。
 
+    # usage
+    ## create new index
+    update_from_scrapbox(
+        "from_scrapbox/nishio.json",
+        "nishio.pickle")
+
+    ## update index
+    update_from_scrapbox(
+        "from_scrapbox/nishio-0314.json", "nishio-0314.pickle", "nishio-0310.pickle")
+    """
+    if in_index is not None:
+        cache = pickle.load(open(in_index, "rb"))
+    else:
+        cache = None
+
+    vs = VectorStore(out_index)
+    data = open(text_file, encoding="utf8")
+    index = 0
+    buf = []
+    for line in data:
+        buf.append(line)
+        body = " ".join(buf)
+        index = index + 1
+        if get_size(body) > BLOCK_SIZE:
+            vs.add_record(body, index, cache)
+            buf = buf[len(buf) // 2:]
+        body = " ".join(buf).strip()
+        if body:
+            vs.add_record(body, index, cache)
+
+    vs.save()
 class VectorStore:
     def __init__(self, name, create_if_not_exist=True):
         self.name = name
@@ -123,7 +162,6 @@ class VectorStore:
 
 if __name__ == "__main__":
     # Sample default arguments for update_from_scrapbox()
-    JSON_FILE = "from_scrapbox/tiny_sample.json"
-    INDEX_FILE = "tiny_sample.pickle"
-
-    update_from_scrapbox(JSON_FILE, INDEX_FILE)
+    PLAIN_TEXT_FILE = "from_scrapbox/export.txt"
+    INDEX_FILE = "typescript_deep_dive.pickle"
+    update_from_plainText(PLAIN_TEXT_FILE, INDEX_FILE)
