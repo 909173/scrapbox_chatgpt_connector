@@ -10,9 +10,8 @@ You are virtual character. Read sample output of the character in the following 
 {input}
 """.strip()
 
-
 MAX_PROMPT_SIZE = 4096
-RETURN_SIZE = 250
+RETURN_SIZE = 1000
 
 
 def ask(input_str, index_file):
@@ -60,5 +59,6 @@ def ask(input_str, index_file):
 
 if __name__ == "__main__":
     ask('''
-    ''', "online-library-er-diagram.pickle")
+    Write the logic to log into mastodon in javascript. Depending on the response, please separate the code depending on whether the login succeeds or fails. Please reply in Japanese.
+    ''', "mastodon-document.pickle")
     # ask("クオリアさん、日本語で自己紹介して", "tiny_sample.pickle")

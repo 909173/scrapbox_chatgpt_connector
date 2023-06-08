@@ -137,3 +137,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# copy repository
+/git-repository
+
+/conversations

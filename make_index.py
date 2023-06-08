@@ -7,6 +7,7 @@ import numpy as np
 from tqdm import tqdm
 import dotenv
 import os
+from sklearn.metrics.pairwise import cosine_similarity
 
 BLOCK_SIZE = 500
 EMBED_MAX_SIZE = 8150
@@ -85,6 +86,7 @@ def update_from_scrapbox(json_file, out_index, in_index=None):
 
     vs.save()
 
+
 def update_from_plainText(text_file, out_index, in_index=None):
     """
     out_index: Output index file name
@@ -125,6 +127,8 @@ def update_from_plainText(text_file, out_index, in_index=None):
             vs.add_record(body, index, cache)
 
     vs.save()
+
+
 class VectorStore:
     def __init__(self, name, create_if_not_exist=True):
         self.name = name
@@ -159,9 +163,29 @@ class VectorStore:
     def save(self):
         pickle.dump(self.cache, open(self.name, "wb"))
 
+    def get_self(self):
+        return self.cache
+
+    def find_similar_docs(self, input_text, top_k=10):
+        # 入力テキストのベクトルを取得します。
+        input_vector = embed_text(input_text)
+        input_vector = np.array(input_vector).reshape(1, -1)
+
+        scores = []
+        # vector_store内の各文書と入力文書とのコサイン類似度を計算します。
+        for body, (v, title) in tqdm(self.cache.items()):
+            print(f'type: {type(v)}')
+            cos_sim = cosine_similarity(input_vector, np.array(v).reshape(1, -1))
+            scores.append((cos_sim[0][0],  title))
+
+        # スコアでソートして、上位の文書を返します。
+        scores.sort(reverse=True)
+        # print(scores)
+        return scores[:top_k]
+
 
 if __name__ == "__main__":
     # Sample default arguments for update_from_scrapbox()
-    PLAIN_TEXT_FILE = "from_scrapbox/export.txt"
-    INDEX_FILE = "typescript_deep_dive.pickle"
-    update_from_plainText(PLAIN_TEXT_FILE, INDEX_FILE)
+    PLAIN_TEXT_FILE = "from_scrapbox/export-mastodon.json"
+    INDEX_FILE = "mastodon-document.pickle"
+    update_from_scrapbox(PLAIN_TEXT_FILE, INDEX_FILE)

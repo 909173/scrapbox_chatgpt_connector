@@ -11,25 +11,19 @@ async function cloneRepo(gitURL, targetFolder) {
   }
 }
 
-async function convertFilesToPlainText(
-  targetFolder,
-  outputPath,
-  allowedExtensions
-) {
+async function convertFilesToJson(targetFolder, outputPath, allowedExtensions) {
   let filesAndFolders = fs
     .readdirSync(targetFolder)
     .map((item) => path.join(targetFolder, item));
 
-  let combinedText = "";
+  let fileObjects = [];
   while (filesAndFolders.length > 0) {
     const itemPath = filesAndFolders.shift();
     const fileExtension = itemPath.split(".").pop();
     if (fs.lstatSync(itemPath).isDirectory()) {
-      // filesAndFolders.push(itemPath);
-      filesAndFolders.concat(
+      filesAndFolders = filesAndFolders.concat(
         fs.readdirSync(itemPath).map((item) => {
           const joinedPath = path.join(itemPath, item);
-          console.log(joinedPath);
           return joinedPath;
         })
       );
@@ -40,17 +34,25 @@ async function convertFilesToPlainText(
         crlfDelay: Infinity,
       });
 
+      let lines = [];
       for await (const line of rl) {
-        combinedText += line + "\n";
+        lines.push(line);
       }
+
+      fileObjects.push({
+        title: itemPath,
+        lines: lines,
+      });
     }
-    fs.appendFileSync(outputPath, combinedText);
   }
+
+  fs.writeFileSync(outputPath, JSON.stringify({ pages: fileObjects }));
 }
+
 (async () => {
-  const gitURL = "https://github.com/typescript-book-ja/typescript-book-jp.git";
-  const targetFolder = "/git-repository";
-  const outputPath = "./from_scrapbox/export.txt";  
+  const gitURL = "https://github.com/mastodon/documentation.git";
+  const targetFolder = "./git-repository";
+  const outputPath = "./from_scrapbox/export-mastodon.json";
   const allowedExtensions = [
     "txt",
     "md",
@@ -61,6 +63,6 @@ async function convertFilesToPlainText(
     "css",
     "js",
   ];
-  await cloneRepo(gitURL, targetFolder);
-  await convertFilesToPlainText(targetFolder, outputPath, allowedExtensions);
-})()
+  // await cloneRepo(gitURL, targetFolder);
+  await convertFilesToJson(targetFolder, outputPath, allowedExtensions);
+})();
